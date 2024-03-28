@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const validator = require('validator');
 
 const UrlSchema = new mongoose.Schema({
     originalUrl: {
@@ -17,7 +18,12 @@ const UrlSchema = new mongoose.Schema({
         type: Date
     },
     createdBy: {
-        type: String
+        type: String,
+        required: true,
+        validate: {
+            validator: (value) => validator.isEmail(value),
+            message: "{VALUE} is not a valid email",
+        },
     }
 });
 

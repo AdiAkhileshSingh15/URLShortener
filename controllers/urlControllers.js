@@ -27,6 +27,9 @@ exports.shortUrl = async (req, res) => {
         if (!url) {
             return res.status(404).json({ msg: 'URL not found' });
         }
+        if (url.expirationDate && url.expirationDate < Date.now()) {
+            return res.status(400).json({ msg: 'URL has expired' });
+        }
         if (url.requiresLogin) {
             req.app.set('url', url.originalUrl);
             req.app.set('createdBy', url.createdBy);
