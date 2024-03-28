@@ -1,91 +1,38 @@
 const express = require('express');
-const session = require('express-session');
 const mongoose = require('mongoose');
-const GoogleStrategy = require('passport-google-oauth20').Strategy;
-const passport = require('passport');
-const nodemailer = require('nodemailer');
-const config = require('./config');
-require('dotenv').config();
+const cors = require('cors');
+const morgan = require('morgan');
+const dotenv = require("dotenv");
+
+dotenv.config();
+
+const passportConfig = require('./utils/passport');
+
+const authRoutes = require('./routes/authRoutes');
+const urlRoutes = require('./routes/urlRoutes');
+
 
 const app = express();
 
-app.use(session({
-    secret: process.env.SESSION_SECRET,
-    resave: false,
-    saveUninitialized: false,
-    cookie: {
-        maxAge: 1000 * 60
-    }
-}));
+// Setup middleware
+app.use(express.urlencoded({ extended: false }));
 app.use(express.json());
+app.use(cors());
+app.use(morgan("combined"));
 
-app.use(passport.initialize());
-app.use(passport.session());
+// Setup session and passport
+passportConfig(app);
 
-passport.serializeUser((user, done) => {
-    done(null, user);
-});
-
-passport.deserializeUser((user, done) => {
-    done(null, user);
-});
-
-passport.use(new GoogleStrategy({
-    clientID: process.env.GOOGLE_CLIENT_ID,
-    clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-    callbackURL: '/auth/google/callback'
-}, (accessToken, refreshToken, profile, done) => {
-    const email = profile.emails[0].value;
-    return done(null, email);
-}));
-
-mongoose.connect(config.mongoURI)
-    .then(() => console.log('MongoDB connected'))
-    .catch(err => console.log(err));
-
-app.get('/auth/google',
-    passport.authenticate('google', { scope: ['profile', 'email'] })
-);
-
-app.get('/auth/google/callback',
-    passport.authenticate('google', { failureRedirect: '/login' }),
-    (req, res) => {
-        res.redirect(`/confirm?email=${req.user}`);
-    }
-);
-
-app.get('/confirm', async (req, res) => {
-    try {
-        const { email } = req.query;
-        const url = req.app.get('url');
-        req.app.set('url', null);
-        sendConfirmationEmail(email, url);
-        res.send('Confirmation email sent');
-    } catch (err) {
-        console.error(err.message);
-        res.status(500).send('Server Error');
-    }
-});
-
-function sendConfirmationEmail(email, originalUrl) {
-    const transporter = nodemailer.createTransport(config.email);
-    const mailOptions = {
-        from: process.env.MAIL_USER,
-        to: email,
-        subject: 'URL Access Confirmation',
-        text: `Your URL ${originalUrl} has been accessed.`
-    };
-    transporter.sendMail(mailOptions, function (error, info) {
-        if (error) {
-            console.log(error);
-        } else {
-            console.log('Email sent: ' + info.response);
-        }
-    });
-}
-
-app.use('/api/url', require('./routes'));
+// Setup routes
+app.use('/auth', authRoutes);
+app.use('/url', urlRoutes);
 
 const PORT = process.env.PORT || 5000;
 
-app.listen(PORT, () => console.log(`Server started on port ${PORT}`));
+// Configure MongoDB connection
+mongoose.connect(process.env.MONGO_URI)
+    .then(() => {
+        console.log('MongoDB connected');
+        app.listen(PORT, () => console.log(`Server started on port ${PORT}`));
+    })
+    .catch(err => console.error('MongoDB connection error: ', err));

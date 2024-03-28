@@ -1,10 +1,8 @@
-const express = require('express');
-const router = express.Router();
-const Url = require('./models');
-const crypto = require('crypto-js');
+const Url = require('../models/url');
 
-// Create shortened URL
-router.post('/', async (req, res) => {
+const { generateHash } = require('../utils/hash');
+
+exports.createUrl = async (req, res) => {
     try {
         const { originalUrl, requiresLogin, expirationDate, createdBy } = req.body;
         const shortUrlHash = generateHash(originalUrl);
@@ -21,10 +19,9 @@ router.post('/', async (req, res) => {
         console.error(err.message);
         res.status(500).send('Server Error');
     }
-});
+};
 
-// Redirect to original URL
-router.get('/:shortUrl', async (req, res) => {
+exports.shortUrl = async (req, res) => {
     try {
         const url = await Url.findOne({ shortUrl: req.params.shortUrl });
         if (!url) {
@@ -39,12 +36,4 @@ router.get('/:shortUrl', async (req, res) => {
         console.error(err.message);
         res.status(500).send('Server Error');
     }
-});
-
-// Generate a hash for short URL
-function generateHash(originalUrl) {
-    const hash = crypto.SHA256(originalUrl).toString(crypto.enc.Hex);
-    return hash.substring(0, 8);
-}
-
-module.exports = router;
+};
