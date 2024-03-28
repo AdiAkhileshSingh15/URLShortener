@@ -70,7 +70,7 @@ app.get('/confirm', async (req, res) => {
 function sendConfirmationEmail(email, originalUrl) {
     const transporter = nodemailer.createTransport(config.email);
     const mailOptions = {
-        from: 'adichauhan15092002@gmail.com',
+        from: process.env.MAIL_USER,
         to: email,
         subject: 'URL Access Confirmation',
         text: `Your URL ${originalUrl} has been accessed.`
