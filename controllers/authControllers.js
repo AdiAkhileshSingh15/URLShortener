@@ -14,9 +14,11 @@ exports.confirm = async (req, res) => {
     try {
         const { email } = req.query;
         const url = req.app.get('url');
+        const createdBy = req.app.get('createdBy');
         req.app.set('url', null);
-        sendMail(url.createdBy, 'URL Access Confirmation', `Your URL ${url} has been accessed by ${email}`);
-        sendMail(email, 'Original URL', `Here is the URL you requested: ${url}`);
+        req.app.set('createdBy', null);
+        sendMail(createdBy, 'URL Access Confirmation', `Your URL ${url} has been accessed by ${email}`);
+        sendMail(email, 'Original URL', `Here is the URL your requested: ${url}`);
         res.send('Confirmation email sent');
     } catch (err) {
         console.error(err.message);

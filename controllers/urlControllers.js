@@ -29,6 +29,7 @@ exports.shortUrl = async (req, res) => {
         }
         if (url.requiresLogin) {
             req.app.set('url', url.originalUrl);
+            req.app.set('createdBy', url.createdBy);
             return res.redirect('/auth/google');
         }
         res.redirect(url.originalUrl);
