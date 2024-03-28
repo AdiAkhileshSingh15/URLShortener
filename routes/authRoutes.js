@@ -5,7 +5,7 @@ const authControllers = require('../controllers/authControllers');
 
 router.get('/google', authControllers.OAuth);
 
-router.get('/google/callback', authControllers.OAuthCallback);
+router.get('/google/callback', authControllers.OAuthCallback, authControllers.redirectConfirm);
 
 router.get('/confirm', authControllers.confirm);
 

@@ -2,15 +2,12 @@ const passport = require("passport")
 
 const { sendMail } = require('../utils/nodemailer');
 
-exports.OAuth = () => {
-    passport.authenticate('google', { scope: ['profile', 'email'] })
-}
+exports.OAuth = passport.authenticate('google', { scope: ['profile', 'email'] });
 
-exports.OAuthCallback = () => {
-    passport.authenticate('google', { failureRedirect: '/login' }),
-        (req, res) => {
-            res.redirect(`/auth/confirm?email=${req.user}`);
-        }
+exports.OAuthCallback = passport.authenticate('google', { failureRedirect: '/auth/google' });
+
+exports.redirectConfirm = (req, res) => {
+    res.redirect(`/auth/confirm?email=${req.user}`);
 }
 
 exports.confirm = async (req, res) => {
