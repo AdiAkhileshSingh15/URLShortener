@@ -11,13 +11,13 @@ const transporter = nodemailer.createTransport({
     }
 })
 
-exports.sendMail = async (email, originalUrl) => {
+exports.sendMail = async (email, subject, text) => {
     try {
         return await transporter.sendMail({
             from: process.env.MAIL_USER,
             to: email,
-            subject: 'URL Access Confirmation',
-            text: `Your URL ${originalUrl} has been accessed.`
+            subject: subject,
+            text: text
         })
     } catch (err) {
         console.log(err);
